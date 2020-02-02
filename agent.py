@@ -43,7 +43,7 @@ class Agent:
         self.reward_memory = np.zeros(max_mem_size)
         self.terminal_memory = np.zeros(max_mem_size, dtype=np.uint8)
 
-    def store_transition(self, state, action, reward, state_, terminal):
+    def store_transition(self, state, action, reward, new_state, terminal):
         index = self.mem_cntr % self.mem_size
         self.state_memory[index] = state
         actions = np.zeros(self.n_actions)
@@ -51,7 +51,7 @@ class Agent:
         self.action_memory[index] = action
         self.reward_memory[index] = reward
         self.terminal_memory[index] = 1 - terminal
-        self.new_state_memory[index] = state_
+        self.new_state_memory[index] = new_state
         self.mem_cntr += 1
 
     def choose_action(self, observation):
@@ -66,8 +66,7 @@ class Agent:
     def learn(self):
         if self.mem_cntr > self.batch_size:
             self.net.optimizer.zero_grad()
-        max_mem = self.mem_cntr if self.mem_cntr < self.mem_size \
-            else self.mem_size
+        max_mem = min(self.mem_cntr, self.mem_size)
         batch = np.random.choice(max_mem, self.batch_size)
         state_batch = self.state_memory[batch]
         action_batch = self.action_memory[batch]
@@ -84,8 +83,7 @@ class Agent:
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target[batch_index, action_batch] = reward_batch + \
             self.gamma * torch.max(q_next, dim=1)[0]*terminal_batch
-        self.epsilon = self.epsilon*self.eps_dec if self.epsilon > \
-            self.eps_min else self.eps_min
+        self.epsilon = max(self.epsilon * self.eps_dec, self.eps_min)
         loss = self.net.loss(q_target, q).to(self.net.device)
         loss.backward()
         self.net.optimizer.step()
