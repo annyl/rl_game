@@ -89,6 +89,6 @@ if __name__ == '__main__':
 
     os.makedirs(args.checkpoints_dir, exist_ok=True)
     torch.save(players['black'].net.state_dict(), os.path.join(
-        args.checkpoints_dir, f'/black_{time()}.pt'))
+        args.checkpoints_dir, f'black_{time()}.pt'))
     torch.save(players['white'].net.state_dict(), os.path.join(
-        args.checkpoints_dir, f'/white_{time()}.pt'))
+        args.checkpoints_dir, f'white_{time()}.pt'))
