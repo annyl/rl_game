@@ -37,7 +37,7 @@ if __name__ == '__main__':
                'white':
                Agent(gamma=args.gamma,
                      epsilon=args.epsilon,
-                     batch_size=64,
+                     batch_size=args.batch_size,
                      action_space=action_space,
                      input_dims=[8*8+1],
                      lr=args.lr,
@@ -89,8 +89,9 @@ if __name__ == '__main__':
             brain = players[turn]
         scores['black'].append(score['black'])
         scores['white'].append(score['white'])
-    if i % args.save_every == 0:
-        torch.save(players['black'].net.state_dict(), os.path.join(
-            args.checkpoints_dir, f'black_{time()}.pt'))
-        torch.save(players['white'].net.state_dict(), os.path.join(
-            args.checkpoints_dir, f'white_{time()}.pt'))
+
+        if i % args.save_every == 0:
+            torch.save(players['black'].net.state_dict(), os.path.join(
+                args.checkpoints_dir, f'black_{time()}.pt'))
+            torch.save(players['white'].net.state_dict(), os.path.join(
+                args.checkpoints_dir, f'white_{time()}.pt'))
