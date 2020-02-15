@@ -14,13 +14,14 @@ def get_score(board: dict, turn: str):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--games', type=int, default=500)
-    parser.add_argument('--lr', type=int, default=500)
+    parser.add_argument('--lr', type=int, default=3e-3)
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--epsilon', type=float, default=1.0)
-    parser.add_argument('--epsilon-decay', type=float, default=0.996)
+    parser.add_argument('--epsilon-decay', type=float, default=0.999977)
     parser.add_argument('--checkpoints-dir', type=str,
                         default='../checkpoints')
+    parser.add_argument('--save_every', type=int, default=100)
     args = parser.parse_args()
 
     action_space = [(x, y) for x in range(32)
@@ -46,6 +47,8 @@ if __name__ == '__main__':
     scores = {'black': [], 'white': []}
     eps_history = []
     score = {'black': 0, 'white': 0}
+
+    os.makedirs(args.checkpoints_dir, exist_ok=True)
 
     for i in range(args.games):
         print(f"episode={i}, score={score}")
@@ -86,9 +89,8 @@ if __name__ == '__main__':
             brain = players[turn]
         scores['black'].append(score['black'])
         scores['white'].append(score['white'])
-
-    os.makedirs(args.checkpoints_dir, exist_ok=True)
-    torch.save(players['black'].net.state_dict(), os.path.join(
-        args.checkpoints_dir, f'black_{time()}.pt'))
-    torch.save(players['white'].net.state_dict(), os.path.join(
-        args.checkpoints_dir, f'white_{time()}.pt'))
+    if i % args.save_every == 0:
+        torch.save(players['black'].net.state_dict(), os.path.join(
+            args.checkpoints_dir, f'black_{time()}.pt'))
+        torch.save(players['white'].net.state_dict(), os.path.join(
+            args.checkpoints_dir, f'white_{time()}.pt'))
