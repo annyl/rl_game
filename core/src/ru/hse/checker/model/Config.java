@@ -6,13 +6,16 @@ public class Config {
     }
 
     private Difficulty difficulty;
-    private boolean isPlayerForWhites;
+    private boolean vsAI = true;
 
-    public Config(Difficulty difficulty, boolean isPlayerForWhites) {
+    public Config(Difficulty difficulty) {
         this.difficulty = difficulty;
-        this.isPlayerForWhites = isPlayerForWhites;
+    }
+    public Config(Difficulty difficulty, boolean twoUserPlayers) {
+        this(difficulty);
+        if (twoUserPlayers)
+            this.vsAI = false;
     }
 
     public Difficulty getDifficulty() {return difficulty;}
-    public boolean isPlayerForWhites() {return isPlayerForWhites;}
 }
