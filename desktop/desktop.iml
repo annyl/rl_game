@@ -15,7 +15,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/build/classes/java/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/java/test" />
     <exclude-output />
@@ -50,13 +50,9 @@
     <orderEntry type="library" exported="" name="Gradle: lwjgl-platform-2.9.3-natives-osx" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jinput-2.0.5" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jutils-1.0.0" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="Gradle: jinput-platform-2.0.5-natives-linux" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="Gradle: jinput-platform-2.0.5-natives-windows" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="Gradle: jinput-platform-2.0.5-natives-osx" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: jinput-platform-2.0.5-natives-linux" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: jinput-platform-2.0.5-natives-windows" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: jinput-platform-2.0.5-natives-osx" level="project" />
-    <orderEntry type="module" module-name="core" exported="" />
     <orderEntry type="module" module-name="core" exported="" />
     <orderEntry type="module" module-name="core" exported="" />
     <orderEntry type="module" module-name="core" exported="" />

@@ -10,6 +10,7 @@ public class Players implements Iterable<Player> {
         this.players = players;
     }
 
+
     @Override
     public Iterator<Player> iterator() {
         return new Iterator<Player>() {

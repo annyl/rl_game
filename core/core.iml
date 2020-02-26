@@ -15,7 +15,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/build/classes/java/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/java/test" />
     <exclude-output />
@@ -32,6 +32,5 @@
     <orderEntry type="library" exported="" name="Gradle: gdx-box2d-1.9.10" level="project" />
     <orderEntry type="library" exported="" name="Gradle: gdx-freetype-1.9.10" level="project" />
     <orderEntry type="library" exported="" name="Gradle: gdx-1.9.10" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: core.core-1.0" level="project" />
   </component>
 </module>

@@ -1,29 +1,22 @@
 package ru.hse.checker.model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
 
 import ru.hse.checker.model.intelligence.Player;
-import ru.hse.checker.model.intelligence.Players;
 import ru.hse.checker.model.intelligence.UserPlayer;
 import ru.hse.checker.utils.Pair;
 
 public class Logic {
 
-    private Board board;
-    public Logic(Board board) {
-        this.board = board;
-    }
 
     public Pair<Boolean, List<Pair<Cell, Cell>>> playerMustHit(Player player) {
-        Board board = player.relativeBoard(this.board);
-        List<Checker> checkers = player.checkers(this.board);
+        Board.Relative board = player.relativeBoard();
+        List<Checker> checkers = player.checkers();
         List<Pair<Cell, Cell>> paths = new LinkedList<>();
         for (Checker checker : checkers) {
-            Pair<Integer, Integer> indices = player.indxChecker(checker);
+            Pair<Integer, Integer> indices = board.indxChecker(checker);
             int x = indices.first;
             int y = indices.second;
 
@@ -35,15 +28,15 @@ public class Logic {
                 if (board.existsOppositeChecker(dx1, dy1, checker) && !board.existsChecker(dx1+1, dy1+1) && board.withinBoard(dx1+1,dy1+1))
                     paths.add(new Pair<>(checker.getCell(), board.getCell(dx1+1, dy1+1)));
 
-                if (board.existsOppositeChecker(dx1, dy2, checker) && !board.existsChecker(dx1+1, dy2+1) && board.withinBoard(dx1+1,dy2+1))
-                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx1+1, dy2+1)));
+                if (board.existsOppositeChecker(dx1, dy2, checker) && !board.existsChecker(dx1+1, dy2-1) && board.withinBoard(dx1+1,dy2-1))
+                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx1+1, dy2-1)));
 
                 //checker must hit back also
-                /*if (board.existsChecker(dx2, dy1) && !board.existsChecker(dx2+1, dy1+1) && board.withinBoard(dx2+1,dy1+1))
-                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx2+1, dy1+1)));
+                /*if (board.existsChecker(dx2, dy1) && !board.existsChecker(dx2-1, dy1+1) && board.withinBoard(dx2-1,dy1+1))
+                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx2-1, dy1+1)));
 
-                if (board.existsChecker(dx2, dy2) && !board.existsChecker(dx2+1, dy2+1) && board.withinBoard(dx2+1,dy2+1))
-                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx2+1, dy2+1)));*/
+                if (board.existsChecker(dx2, dy2) && !board.existsChecker(dx2-1, dy2-1) && board.withinBoard(dx2-1,dy2-1))
+                    paths.add(new Pair<>(checker.getCell(), board.getCell(dx2-1, dy2-1)));*/
             } else {
                 boolean leftForwardAvailable = true;
                 boolean rightForwardAvailable = true;
@@ -62,24 +55,24 @@ public class Logic {
                         rightForwardAvailable = false;
                     }
 
-                    if (!board.withinBoard(dx1, dy2) || !board.withinBoard(dx1+1, dy2+1) || (board.existsChecker(dx1, dy2) && board.existsChecker(dx1+1, dy2+1)))
+                    if (!board.withinBoard(dx1, dy2) || !board.withinBoard(dx1+1, dy2-1) || (board.existsChecker(dx1, dy2) && board.existsChecker(dx1+1, dy2-1)))
                         leftForwardAvailable = false;
-                    if (leftForwardAvailable && board.existsChecker(dx1, dy2) && !board.existsOppositeChecker(dx1+1, dy2+1, checker)) {
-                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx1+1, dy2+1)));
+                    if (leftForwardAvailable && board.existsChecker(dx1, dy2) && !board.existsOppositeChecker(dx1+1, dy2-1, checker)) {
+                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx1+1, dy2-1)));
                         leftForwardAvailable = false;
                     }
 
-                    if (!board.withinBoard(dx2, dy1) || !board.withinBoard(dx2+1, dy1+1) || (board.existsChecker(dx2, dy1) && board.existsChecker(dx2+1, dy1+1)))
+                    if (!board.withinBoard(dx2, dy1) || !board.withinBoard(dx2-1, dy1+1) || (board.existsChecker(dx2, dy1) && board.existsChecker(dx2-1, dy1+1)))
                         rightBackAvailable = false;
-                    if (rightBackAvailable && board.existsChecker(dx2, dy1) && !board.existsOppositeChecker(dx2+1, dy1+1, checker)) {
-                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx2+1, dy1+1)));
+                    if (rightBackAvailable && board.existsChecker(dx2, dy1) && !board.existsOppositeChecker(dx2-1, dy1+1, checker)) {
+                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx2-1, dy1+1)));
                         rightBackAvailable = false;
                     }
 
-                    if (!board.withinBoard(dx2, dy2) || !board.withinBoard(dx2+1, dy2+1) || (board.existsChecker(dx2, dy2) && board.existsChecker(dx2+1, dy2+1)))
+                    if (!board.withinBoard(dx2, dy2) || !board.withinBoard(dx2-1, dy2-1) || (board.existsChecker(dx2, dy2) && board.existsChecker(dx2-1, dy2-1)))
                         leftBackAvailable = false;
-                    if (leftBackAvailable && board.existsChecker(dx2, dy1) && !board.existsOppositeChecker(dx2+1, dy2+1, checker)) {
-                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx2+1, dy2+1)));
+                    if (leftBackAvailable && board.existsChecker(dx2, dy1) && !board.existsOppositeChecker(dx2-1, dy2-1, checker)) {
+                        paths.add(new Pair<>(checker.getCell(), board.getCell(dx2-1, dy2-1)));
                         leftBackAvailable = false;
                     }
                 }
@@ -90,13 +83,20 @@ public class Logic {
         return new Pair<>(isMustHit, paths);
     }
 
-    public ArrayList<Cell> getAvailablePath(Player player, int x, int y) {
+    public ArrayList<Cell> getAvailablePath(Player player, Cell cell) {
         if (!(player instanceof UserPlayer))
             throw new RuntimeException("There's no rules for AI");
 
-        Board board = player.relativeBoard(this.board);
-
         ArrayList<Cell> paths = new ArrayList<>();
+        if (!cell.hasChecker())
+            return paths;
+
+        Board.Relative board = player.relativeBoard();
+        Pair<Integer, Integer> relCoords = board.indxChecker(cell.getChecker());
+        int x = relCoords.first;
+        int y = relCoords.second;
+
+
 
         if (!board.existsChecker(x, y))
             return paths;
@@ -152,39 +152,9 @@ public class Logic {
         return paths;
     }
 
-    private static void testAvailablePath() {
-        RawModel rawModel = new RawModel();
-        Board board = new Board(rawModel);
-        Logic logic = new Logic(board);
-
-        UserPlayer first = new UserPlayer(Player.NumPlayer.FIRST);
-        UserPlayer second = new UserPlayer(Player.NumPlayer.SECOND);
-
-        Players players = new Players(first, second);
-
-        Scanner in = new Scanner(System.in);
-        Iterator<Player> it = players.iterator();
-        while (it.hasNext()) {
-
-            Player player = it.next();
-
-            player.relativeBoard(board).printCells();
-
-            int x = in.nextInt();
-            int y = in.nextInt();
-            ArrayList<Cell> paths = logic.getAvailablePath(player, x, y);
-            for (Cell cell : paths) {
-                System.out.print("(" + cell.x + "," + cell.y + "), ");
-            }
-            System.out.println();
-        }
-    }
 
     public boolean isGameOver(Player player) {
-        return player.checkers(this.board).isEmpty();
+        return player.checkers().isEmpty();
     }
 
-    public static void main(String[] args) {
-        testAvailablePath();
-    }
 }

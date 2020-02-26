@@ -1,7 +1,6 @@
 package ru.hse.checker.model;
 
 
-
 public class Cell {
 
     public enum Type {
