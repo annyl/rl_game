@@ -2,13 +2,24 @@ from checkers import Checkers
 from agent import Agent
 import numpy as np
 import torch
-from time import time
 from argparse import ArgumentParser
 import os
 
 
 def get_score(board: dict, turn: str):
     return len(board[turn]['men']) + len(board[turn]['kings']) * 2
+
+def generate_action_space():
+    for x in range(32):
+        increase_fwd_step = x // 4 % 2 == 0
+        for forward_step in [3, 4]:
+            yield (x, x + (forward_step + 1 if increase_fwd_step else forward_step))
+        for backward_step in [3, 4]:
+            yield (x, x - (backward_step if increase_fwd_step else backward_step + 1))
+        for jump in [7, 9]:
+            yield (x, x + jump)
+            yield (x, x - jump)
+
 
 
 if __name__ == '__main__':
@@ -18,14 +29,14 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--epsilon', type=float, default=1.0)
-    parser.add_argument('--epsilon-decay', type=float, default=0.999977)
+    parser.add_argument('--epsilon-decay', type=float, default=0.9996)
     parser.add_argument('--checkpoints-dir', type=str,
                         default='../checkpoints')
     parser.add_argument('--save_every', type=int, default=100)
     args = parser.parse_args()
 
-    action_space = [(x, y) for x in range(32)
-                    for y in range(32) if x != y]
+    action_space = list(generate_action_space())
+    print(action_space)
     players = {'black':
                Agent(gamma=args.gamma,
                      epsilon=args.epsilon,
@@ -69,7 +80,6 @@ if __name__ == '__main__':
         encoded_turn = 1 if turn == 'black' else 0
         observation = np.append(board_tensor, encoded_turn)
         while not winner:
-            # env.print_board()
             action = brain.choose_action(observation, moves)
             new_board, new_turn, _, moves, winner = env.move(*action)
             turn_score = get_score(new_board, turn) - get_score(board, turn)
@@ -91,7 +101,11 @@ if __name__ == '__main__':
         scores['white'].append(score['white'])
 
         if i % args.save_every == 0:
-            torch.save(players['black'].net.state_dict(), os.path.join(
-                args.checkpoints_dir, f'black_{time()}.pt'))
-            torch.save(players['white'].net.state_dict(), os.path.join(
-                args.checkpoints_dir, f'white_{time()}.pt'))
+            example = torch.rand(8 * 8 + 1)
+            for key, agent in players.items():
+                agent.net.eval()
+            traced_script_module = torch.jit.trace(agent.net, example)
+                path = os.path.join(
+                args.checkpoints_dir, f'{key}[{i + 1}].pt')
+                traced_script_module.save(path)
+                agent.net.train()
