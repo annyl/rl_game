@@ -1,5 +1,5 @@
 from checkers import Checkers
-from agent import Agent
+from agent import Agent, MobileAgent
 import numpy as np
 import torch
 from argparse import ArgumentParser
@@ -76,9 +76,9 @@ if __name__ == '__main__':
         moves = env.legal_moves()
         board, turn, last_moved_piece = env.save_state()
         brain = players[turn]
-        board_tensor = np.array(env.flat_board()).flatten()
-        encoded_turn = 1 if turn == 'black' else 0
-        observation = np.append(board_tensor, encoded_turn)
+        board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
+        encoded_turn = torch.tensor([1.]) if turn == 'black' else torch.tensor([0.])
+        observation = torch.cat([board_tensor, encoded_turn])
         while not winner:
             action = brain.choose_action(observation, moves)
             new_board, new_turn, _, moves, winner = env.move(*action)
@@ -89,23 +89,21 @@ if __name__ == '__main__':
             board, turn, _ = env.save_state()
             reward = turn_score - new_turn_score
             score[turn] += reward
-            board_tensor = np.array(env.flat_board()).flatten()
-            encoded_turn = 1 if turn == 'black' else 0
-            new_observation = np.append(board_tensor, encoded_turn)
+            board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
+            encoded_turn = torch.tensor([1. if turn == 'black' else 0.])
+            new_observation = torch.cat([board_tensor, encoded_turn])
             brain.store_transition(observation, action,
                                    reward, new_observation, bool(winner))
             brain.learn()
             observation = new_observation
             brain = players[turn]
-        scores['black'].append(score['black'])
-        scores['white'].append(score['white'])
+        for key in players.keys():
+            scores[key].append(score[key])
 
         if i % args.save_every == 0:
-            example = torch.rand(8 * 8 + 1)
             for key, agent in players.items():
                 agent.net.eval()
-            traced_script_module = torch.jit.trace(agent.net, example)
-                path = os.path.join(
-                args.checkpoints_dir, f'{key}[{i + 1}].pt')
-                traced_script_module.save(path)
+                m_agent = MobileAgent(agent)
+                path = os.path.join(args.checkpoints_dir, f'{key}[{i + 1}].pt')
+                torch.jit.script(m_agent).save(path)
                 agent.net.train()
