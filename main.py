@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoints-dir', type=str,
                         default='../checkpoints')
     parser.add_argument('--save_every', type=int, default=100)
+    parser.add_argument('--save_dir', type=str, default='')
     args = parser.parse_args()
 
     action_space = list(generate_action_space())
@@ -98,6 +99,7 @@ if __name__ == '__main__':
             brain.learn()
             observation = new_observation
             brain = players[turn]
+
         for key in players.keys():
             scores[key].append(score[key])
 

@@ -1,46 +1,215 @@
 package ru.hse.checker.model;
 
 
+import java.util.LinkedList;
+import java.util.List;
+
+import ru.hse.checker.model.intelligence.Player;
+import ru.hse.checker.utils.Pair;
+
 public class Board  {
     public static final int ROW = 8;
     public static final int COLUMN = 8;
-    public Cell[][] cells = new Cell[ROW][COLUMN];
+    private final Cell[][] cells = new Cell[ROW][COLUMN];
 
-    public Board(boolean isWhitesBeneath) {
-        Checker.Type below = isWhitesBeneath ? Checker.Type.WHITE : Checker.Type.BLACK;
-        Checker.Type above = isWhitesBeneath ? Checker.Type.BLACK : Checker.Type.WHITE;
+    private List<Checker> whites = new LinkedList<>();
+    private List<Checker> blacks = new LinkedList<>();
 
+    private List<ICheckerChangeListener> listeners = new LinkedList<>();
+    private Board flipped;
+
+    private Board() {}
+
+    public Board(List<ICheckerChangeListener> listeners) {
+        this.listeners.addAll(listeners);
 
         for (int i = 0; i < ROW; i++) {
             for (int j = 0; j < COLUMN; j++) {
                 if ((i + j) % 2 == 0) {
-                    cells[i][j] = new Cell(Cell.Type.BLACK);
-                    if (i < 3)
-                        cells[i][j].setChecker(new Checker(below));
-                    if (i > 4)
-                        cells[i][j].setChecker(new Checker(above));
+                    cells[i][j] = new Cell(Cell.Type.BLACK, i, j);
+                    if (i < 3) {
+                        createCheckerInCell(Checker.Type.WHITE, i, j);
+                    }
+                    if (i > 4) {
+                        createCheckerInCell(Checker.Type.BLACK, i, j);
+                    }
                 } else {
-                    cells[i][j] = new Cell(Cell.Type.WHITE);
+                    cells[i][j] = new Cell(Cell.Type.WHITE, i, j);
                 }
             }
         }
     }
 
+    public interface ICheckerChangeListener {
+        void onPosChanged(Cell oldCell, Cell newCell);
+        void onUpToQueen(Cell cell);
+        void onCreated(Cell cell);
+        void onRemoved(Cell cell);
+    }
 
-    private void printCells() {
+    public boolean withinBoard(int x, int y) {
+        if (x < 0 || y < 0 || x >= ROW || y >= COLUMN)
+            return false;
+        return true;
+    }
+
+    public Cell getCell(int x, int y) {
+        return cells[x][y];
+    }
+
+    public Checker getChecker(int x, int y) {
+        return cells[x][y].getChecker();
+    }
+
+    public boolean existsChecker(int x, int y) {
+        if (!withinBoard(x, y))
+            return false;
+        return cells[x][y].hasChecker();
+    }
+
+    public boolean existsOppositeChecker(int x, int y, Checker checker) {
+        if (!withinBoard(x, y))
+            return false;
+        return cells[x][y].hasChecker() && cells[x][y].getChecker().isOpposite(checker);
+    }
+
+    private Board flip() {
+        if (flipped == null) {
+            flipped = new Board();
+            flipped.listeners = listeners;
+            for (int i = 0; i < ROW; i++) {
+                for (int j = 0; j < COLUMN; j++) {
+                    flipped.cells[ROW - i - 1][COLUMN - j - 1] = cells[i][j];
+                }
+            }
+        }
+        return flipped;
+    }
+
+    public List<Checker> getWhites() { return whites; }
+    public List<Checker> getBlacks() { return blacks; }
+
+    private void createCheckerInCell(Checker.Type type, int i, int j) {
+        List<Checker> listCheckers = type == Checker.Type.WHITE ? whites : blacks;
+        Checker checker = new Checker(type, cells[i][j]);
+        listCheckers.add(checker);
+        cells[i][j].setChecker(checker);
+        for (ICheckerChangeListener listener : listeners)
+            listener.onCreated(cells[i][j]);
+    }
+
+    public void moveChecker(int oldX, int oldY, int newX, int newY) {
+        Cell from = getCell(oldX, oldY);
+        Cell to = getCell(newX, newY);
+        Checker checker = from.getChecker();
+        from.removeChecker();
+        to.setChecker(checker);
+        for (ICheckerChangeListener listener : listeners)
+            listener.onPosChanged(from, to);
+        if (newX == ROW - 1 && !checker.isQueen())
+            upToQueen(newX, newY);
+    }
+
+    public void removeChecker(int x, int y) {
+        Cell cell = getCell(x, y);
+        Checker checker = cell.getChecker();
+        List<Checker> listCheckers = checker.type == Checker.Type.WHITE ? whites : blacks;
+        listCheckers.remove(checker);
+        cell.removeChecker();
+        for (ICheckerChangeListener listener : listeners)
+            listener.onRemoved(cell);
+    }
+
+    public void upToQueen(int x, int y) {
+        Cell cell = getCell(x, y);
+        cell.getChecker().upToQueen();
+        for (ICheckerChangeListener listener : listeners)
+            listener.onUpToQueen(cell);
+    }
+
+    public void printCells() {
         for (int i = ROW - 1; i >= 0; i--) {
+            System.out.print(i + " ");
             for (int j = 0; j < COLUMN; j++) {
-                if (!cells[i][j].hasChecker()) System.out.print(" 0");
+                if (!cells[i][j].hasChecker()) System.out.print("\u25A1");
                 else if (cells[i][j].getChecker().type == Checker.Type.WHITE)
-                    System.out.print(" 1");
-                else System.out.print("-1");
+                    if (!cells[i][j].getChecker().isQueen())
+                        System.out.print("\u25CE");
+                    else
+                        System.out.print("\u25C7");
+                else if (!cells[i][j].getChecker().isQueen())
+                    System.out.print("\u25C9");
+                else
+                    System.out.print("\u25C8");
             }
             System.out.println();
         }
+        System.out.print("  ");
+        for (int i = 0; i < COLUMN; i++) {
+            System.out.print(i);
+        }
+        System.out.println();
     }
 
     public static void main(String[] args) {
-        Board board = new Board(false);
+        RawModel rawModel = new RawModel();
+        List<ICheckerChangeListener> listeners = new LinkedList<>();
+        listeners.add(rawModel);
+        Board board = new Board(listeners);
+        rawModel.printModel();
         board.printCells();
+        System.out.println();
+        board.flip().printCells();
     }
+
+    public Relative forPlayer(Player player) {
+        return new Relative(player, this);
+    }
+
+    public static class Relative {
+
+        private Board board;
+        private boolean isFlipped;
+
+        private Relative(Player player, Board board) {
+            if (player.num() == Player.NumPlayer.FIRST) {
+                isFlipped = false;
+                this.board = board;
+            } else {
+                this.board = board.flip();
+                isFlipped = true;
+            }
+        }
+
+        public Pair<Integer, Integer> indxChecker(Checker checker) {
+            Cell cell = checker.getCell();
+            return !isFlipped ? new Pair<>(cell.x, cell.y)  : new Pair<>(Board.ROW - cell.x - 1, Board.COLUMN - cell.y - 1) ;
+        }
+
+        public boolean withinBoard(int x, int y) {
+            return board.withinBoard(x, y);
+        }
+
+        public Cell getCell(int x, int y) {
+            return board.getCell(x, y);
+        }
+
+        public Checker getChecker(int x, int y) {
+            return board.getChecker(x, y);
+        }
+
+        public boolean existsChecker(int x, int y) {
+            return board.existsChecker(x, y);
+        }
+
+        public boolean existsOppositeChecker(int x, int y, Checker checker) {
+            return board.existsOppositeChecker(x, y, checker);
+        }
+
+        public void printCells() {
+            board.printCells();
+        }
+
+    }
+
 }
