@@ -73,7 +73,7 @@ if __name__ == '__main__':
         score = {'black': 0, 'white': 0}
         env.restore_state(initial_state)
         winner = None
-        moves = env.legal_moves()
+        moves = torch.tensor(env.legal_moves())
         board, turn, last_moved_piece = env.save_state()
         brain = players[turn]
         board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
@@ -81,7 +81,8 @@ if __name__ == '__main__':
         observation = torch.cat([board_tensor, encoded_turn])
         while not winner:
             action = brain.choose_action(observation, moves)
-            new_board, new_turn, _, moves, winner = env.move(*action)
+            new_board, new_turn, _, moves, winner = env.move(*action.tolist())
+            moves=torch.tensor(moves)
             turn_score = get_score(new_board, turn) - get_score(board, turn)
             # print(f'{turn} score = {turn_score}')
             new_turn_score = get_score(

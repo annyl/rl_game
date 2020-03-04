@@ -16,8 +16,8 @@ class DeepQNetwork(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.to(self.device)
 
-    def forward(self, observation):
-        state = torch.tensor(observation).to(self.device)
+    def forward(self, observation: torch.Tensor):
+        state = observation.to(self.device)
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         actions = self.fc3(x)
@@ -49,24 +49,26 @@ class Agent:
         self.state_memory[index] = state
         actions = torch.zeros(self.n_actions)
         action_idx = ((self.action_space[:, 0] == action[0]) & (self.action_space[:, 1] == action[1])).nonzero().view(-1)
-        actions[self.action_space[action_idx]] = 1.0
+        actions[action_idx.item()] = 1.0
         self.action_memory[index] = actions
         self.reward_memory[index] = reward
         self.terminal_memory[index] = 1 - terminal
         self.new_state_memory[index] = new_state
         self.mem_cntr += 1
 
-    def choose_action(self, observation, legal_actions):
-        if not legal_actions:
+    def choose_action(self, observation: torch.Tensor, legal_actions: torch.Tensor):
+        if legal_actions.nelement() == 0:
             return 0
         rand = np.random.random()
         if rand < self.epsilon:
             return legal_actions[np.random.randint(len(legal_actions))]
         actions = self.net.forward(observation)
-        legal_actions_idx = torch.cat([(self.action_space == legal_action).nonzero()
+        legal_actions_idx = torch.cat(
+            [((self.action_space[:,0] == legal_action[0]) &
+              (self.action_space[:,1] == legal_action[1])).nonzero()
                              for legal_action in legal_actions])
         action = torch.argmax(actions[legal_actions_idx]).item()
-        return list(self.action_space.keys())[legal_actions_idx[action]]
+        return self.action_space[legal_actions_idx[action]][0]
 
     def learn(self):
         if self.mem_cntr > self.batch_size:
@@ -75,7 +77,7 @@ class Agent:
         batch = np.random.choice(max_mem, self.batch_size)
         state_batch = self.state_memory[batch]
         action_batch = self.action_memory[batch]
-        action_indices = torch.dot(action_batch, self.action_space.float())
+        action_indices = action_batch.nonzero()[:,1]
         reward_batch = self.reward_memory[batch]
         terminal_batch = self.terminal_memory[batch]
         new_state_batch = self.new_state_memory[batch]
@@ -102,10 +104,12 @@ class MobileAgent(nn.Module):
     @torch.jit.export
     def choose_action(self, observation, legal_actions):
         actions = self.net.forward(observation)
-        legal_actions_idx = [self.action_space[legal_action]
-                             for legal_action in legal_actions]
+        legal_actions_idx = torch.cat(
+            [((self.action_space[:, 0] == legal_action[0]) &
+              (self.action_space[:, 1] == legal_action[1])).nonzero()
+             for legal_action in legal_actions])
         action = torch.argmax(actions[legal_actions_idx]).item()
-        return list(self.action_space.keys())[legal_actions_idx[action]]
+        return self.action_space[legal_actions_idx[int(action)]][0]
 
     def forward(self, x):
         return self.net.forward(x)
