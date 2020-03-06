@@ -3,11 +3,11 @@ from agent import Agent, MobileAgent
 import numpy as np
 import torch
 from argparse import ArgumentParser
+from eval import eval, get_score
 import os
 
 
-def get_score(board: dict, turn: str):
-    return len(board[turn]['men']) + len(board[turn]['kings']) * 2
+
 
 def generate_action_space():
     for x in range(32):
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoints-dir', type=str,
                         default='../checkpoints')
     parser.add_argument('--save_every', type=int, default=100)
-    parser.add_argument('--save_dir', type=str, default='')
+    parser.add_argument('--eval_every', type=int, default=10)
     args = parser.parse_args()
 
     action_space = list(generate_action_space())
@@ -110,3 +110,7 @@ if __name__ == '__main__':
                 path = os.path.join(args.checkpoints_dir, f'{key}[{i + 1}].pt')
                 torch.jit.script(m_agent).save(path)
                 agent.net.train()
+
+        if i % args.eval_every == 0:
+            for color, player in players.items():
+                print(f'{color} accuracy: {eval(player, color):.3f}')
