@@ -4,10 +4,8 @@ import numpy as np
 import torch
 from argparse import ArgumentParser
 import os
+from eval import get_score, eval
 
-
-def get_score(board: dict, turn: str):
-    return len(board[turn]['men']) + len(board[turn]['kings']) * 2
 
 def generate_action_space():
     for x in range(32):
@@ -24,20 +22,20 @@ def generate_action_space():
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument('--games', type=int, default=500)
+    parser.add_argument('--games', type=int, default=5000)
     parser.add_argument('--lr', type=int, default=3e-3)
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--gamma', type=float, default=0.99)
     parser.add_argument('--epsilon', type=float, default=1.0)
-    parser.add_argument('--epsilon-decay', type=float, default=0.9996)
+    parser.add_argument('--epsilon-decay', type=float, default=0.99978466)
     parser.add_argument('--checkpoints-dir', type=str,
                         default='../checkpoints')
     parser.add_argument('--save_every', type=int, default=100)
+    parser.add_argument('--eval_every', type=int, default=1000)
     parser.add_argument('--save_dir', type=str, default='')
     args = parser.parse_args()
 
-    action_space = list(generate_action_space())
-    print(action_space)
+    action_space = torch.tensor(list(generate_action_space()))
     players = {'black':
                Agent(gamma=args.gamma,
                      epsilon=args.epsilon,
@@ -56,21 +54,13 @@ if __name__ == '__main__':
                      eps_dec=args.epsilon_decay)}
     env = Checkers()
     initial_state = env.save_state()
-    scores = {'black': [], 'white': []}
     eps_history = []
     score = {'black': 0, 'white': 0}
 
     os.makedirs(args.checkpoints_dir, exist_ok=True)
 
     for i in range(args.games):
-        print(f"episode={i}, score={score}")
-        if i % 10 == 0 and i > 0:
-            avg_score = {'black': np.mean(scores['black'][max(0, i-10): i+1]),
-                         'white': np.mean(scores['white'][max(0, i-10): i+1])}
-            print(
-                f"\taverage_score={avg_score}",
-                f'black_eps={players["black"].epsilon:.3f}',
-                f'white_eps={players["white"].epsilon:.3f}')
+        print(f"episode={i}, score={score}, black_eps:{players['black'].epsilon}, white_eps:{players['white'].epsilon}")
         score = {'black': 0, 'white': 0}
         env.restore_state(initial_state)
         winner = None
@@ -100,9 +90,6 @@ if __name__ == '__main__':
             observation = new_observation
             brain = players[turn]
 
-        for key in players.keys():
-            scores[key].append(score[key])
-
         if i % args.save_every == 0:
             for key, agent in players.items():
                 agent.net.eval()
@@ -110,3 +97,8 @@ if __name__ == '__main__':
                 path = os.path.join(args.checkpoints_dir, f'{key}[{i + 1}].pt')
                 torch.jit.script(m_agent).save(path)
                 agent.net.train()
+
+        if i % args.eval_every == 0:
+            for color, player in players.items():
+                env.restore_state(initial_state)
+                print(f'{color} score: {eval(player, env, color)}')

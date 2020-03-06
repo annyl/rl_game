@@ -27,12 +27,12 @@ class DeepQNetwork(nn.Module):
 class Agent:
     def __init__(self, gamma, epsilon, lr, input_dims,
                  batch_size, action_space, max_mem_size=1000000,
-                 eps_min=0.01, eps_dec=0.996):
+                 eps_min=0.01, eps_dec=0.998466):
         self.n_actions = len(action_space)
         self.epsilon = epsilon
         self.batch_size = batch_size
         self.gamma = gamma
-        self.action_space = torch.tensor(action_space)
+        self.action_space = action_space
         self.net = DeepQNetwork(lr, input_dims, 256, 256, self.n_actions)
         self.mem_size = max_mem_size
         self.mem_cntr = 0
@@ -78,12 +78,10 @@ class Agent:
         state_batch = self.state_memory[batch]
         action_batch = self.action_memory[batch]
         action_indices = action_batch.nonzero()[:,1]
-        reward_batch = self.reward_memory[batch]
-        terminal_batch = self.terminal_memory[batch]
+        reward_batch = self.reward_memory[batch].to(self.net.device)
+        terminal_batch = self.terminal_memory[batch].to(self.net.device)
         new_state_batch = self.new_state_memory[batch]
 
-        reward_batch = torch.tensor(reward_batch).to(self.net.device)
-        terminal_batch = torch.tensor(terminal_batch).to(self.net.device)
         q = self.net.forward(state_batch).to(self.net.device)
         q_target = self.net.forward(state_batch).to(self.net.device)
         q_next = self.net.forward(new_state_batch).to(self.net.device)
