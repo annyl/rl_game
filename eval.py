@@ -1,29 +1,33 @@
 import torch
 from agent import Agent
-from checkers import Checkers
 from tqdm import tqdm
+from checkers import Checkers
 
-def eval(agent:Agent, color:str, num_games: int = 100):
+
+def get_score(board: dict, turn: str):
+    return len(board[turn]['men']) + len(board[turn]['kings']) * 2
+
+def eval(agent:Agent, env: Checkers, color:str, n_games=100):
+    agent.net.eval()
     opponent = Agent(gamma=agent.gamma,
-                     epsilon=agent.epsilon,
+                     epsilon=1,
+                     lr=0,
+                     input_dims=[8*8 + 1],
                      batch_size=agent.batch_size,
                      action_space=agent.action_space,
-                     input_dims=[8*8+1],
-                     lr=0,
-                     eps_dec=agent.eps_dec)
-
-    env = Checkers()
-    initial_state = env.save_state()
-    agent.net.eval()
+                     eps_dec=0,
+                     max_mem_size=0
+                     )
     opponent.net.eval()
-    scores = {'black':0, 'white': 0}
+    initial_state = env.save_state()
+    score = {'black': 0, 'white': 0}
 
-    for _ in tqdm(range(num_games)):
+    for i in tqdm(range(n_games)):
         env.restore_state(initial_state)
         winner = None
         moves = torch.tensor(env.legal_moves())
         board, turn, last_moved_piece = env.save_state()
-        brain = agent if color == turn else opponent
+        brain = agent if turn == color else opponent
         board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
         encoded_turn = torch.tensor([1.]) if turn == 'black' else torch.tensor([0.])
         observation = torch.cat([board_tensor, encoded_turn])
@@ -31,20 +35,12 @@ def eval(agent:Agent, color:str, num_games: int = 100):
             action = brain.choose_action(observation, moves)
             new_board, new_turn, _, moves, winner = env.move(*action.tolist())
             moves = torch.tensor(moves)
-            turn_score = get_score(new_board, turn) - get_score(board, turn)
-            # print(f'{turn} score = {turn_score}')
-            new_turn_score = get_score(
-                new_board, new_turn) - get_score(board, new_turn)
-            board, turn, _ = env.save_state()
-            reward = turn_score - new_turn_score
             board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
             encoded_turn = torch.tensor([1. if turn == 'black' else 0.])
-            new_observation = torch.cat([board_tensor, encoded_turn])
-            observation = new_observation
-            brain = agent if color == turn else opponent
-        scores[winner] += 1
+            observation = torch.cat([board_tensor, encoded_turn])
+            brain = agent if turn == color else opponent
+        score[winner] +=1
+    agent.net.train()
+    return score[color] / n_games
 
-    return scores[color] / (sum(scores.values()))
 
-def get_score(board: dict, turn: str):
-    return len(board[turn]['men']) + len(board[turn]['kings']) * 2
