@@ -17,21 +17,23 @@ public class Board  {
 
     private List<ICheckerChangeListener> listeners = new LinkedList<>();
     private Board flipped;
+    private RawModel rawModel = new RawModel();
 
     private Board() {}
 
     public Board(List<ICheckerChangeListener> listeners) {
         this.listeners.addAll(listeners);
+        this.listeners.add(rawModel);
 
         for (int i = 0; i < ROW; i++) {
             for (int j = 0; j < COLUMN; j++) {
                 if ((i + j) % 2 == 0) {
                     cells[i][j] = new Cell(Cell.Type.BLACK, i, j);
                     if (i < 3) {
-                        createCheckerInCell(Checker.Type.WHITE, i, j);
+                        createCheckerInCell(Player.FIRST_PLAYER_TYPE, i, j);
                     }
                     if (i > 4) {
-                        createCheckerInCell(Checker.Type.BLACK, i, j);
+                        createCheckerInCell(Player.SECOND_PLAYER_TYPE, i, j);
                     }
                 } else {
                     cells[i][j] = new Cell(Cell.Type.WHITE, i, j);
@@ -47,7 +49,7 @@ public class Board  {
         void onRemoved(Cell cell);
     }
 
-    public boolean withinBoard(int x, int y) {
+    boolean withinBoard(int x, int y) {
         if (x < 0 || y < 0 || x >= ROW || y >= COLUMN)
             return false;
         return true;
@@ -57,17 +59,17 @@ public class Board  {
         return cells[x][y];
     }
 
-    public Checker getChecker(int x, int y) {
+    Checker getChecker(int x, int y) {
         return cells[x][y].getChecker();
     }
 
-    public boolean existsChecker(int x, int y) {
+    boolean existsChecker(int x, int y) {
         if (!withinBoard(x, y))
             return false;
         return cells[x][y].hasChecker();
     }
 
-    public boolean existsOppositeChecker(int x, int y, Checker checker) {
+    boolean existsOppositeChecker(int x, int y, Checker checker) {
         if (!withinBoard(x, y))
             return false;
         return cells[x][y].hasChecker() && cells[x][y].getChecker().isOpposite(checker);
@@ -89,6 +91,8 @@ public class Board  {
     public List<Checker> getWhites() { return whites; }
     public List<Checker> getBlacks() { return blacks; }
 
+    public RawModel getRaw() { return rawModel; }
+
     private void createCheckerInCell(Checker.Type type, int i, int j) {
         List<Checker> listCheckers = type == Checker.Type.WHITE ? whites : blacks;
         Checker checker = new Checker(type, cells[i][j]);
@@ -106,7 +110,9 @@ public class Board  {
         to.setChecker(checker);
         for (ICheckerChangeListener listener : listeners)
             listener.onPosChanged(from, to);
-        if (newX == ROW - 1 && !checker.isQueen())
+        if (newX == ROW - 1 && !checker.isQueen() && checker.type == Player.FIRST_PLAYER_TYPE) //part of logic is here - пусть
+            upToQueen(newX, newY);
+        if (newX == 0 && !checker.isQueen() && checker.type == Player.SECOND_PLAYER_TYPE)
             upToQueen(newX, newY);
     }
 
@@ -120,14 +126,14 @@ public class Board  {
             listener.onRemoved(cell);
     }
 
-    public void upToQueen(int x, int y) {
+    void upToQueen(int x, int y) {
         Cell cell = getCell(x, y);
         cell.getChecker().upToQueen();
         for (ICheckerChangeListener listener : listeners)
             listener.onUpToQueen(cell);
     }
 
-    public void printCells() {
+    void printCells() {
         for (int i = ROW - 1; i >= 0; i--) {
             System.out.print(i + " ");
             for (int j = 0; j < COLUMN; j++) {
@@ -168,46 +174,46 @@ public class Board  {
 
     public static class Relative {
 
-        private Board board;
+        private Board relative;
         private boolean isFlipped;
 
         private Relative(Player player, Board board) {
             if (player.num() == Player.NumPlayer.FIRST) {
                 isFlipped = false;
-                this.board = board;
+                this.relative = board;
             } else {
-                this.board = board.flip();
+                this.relative = board.flip();
                 isFlipped = true;
             }
         }
 
-        public Pair<Integer, Integer> indxChecker(Checker checker) {
+        Pair<Integer, Integer> indxChecker(Checker checker) {
             Cell cell = checker.getCell();
             return !isFlipped ? new Pair<>(cell.x, cell.y)  : new Pair<>(Board.ROW - cell.x - 1, Board.COLUMN - cell.y - 1) ;
         }
 
-        public boolean withinBoard(int x, int y) {
-            return board.withinBoard(x, y);
+        boolean withinBoard(int x, int y) {
+            return relative.withinBoard(x, y);
         }
 
         public Cell getCell(int x, int y) {
-            return board.getCell(x, y);
+            return relative.getCell(x, y);
         }
 
-        public Checker getChecker(int x, int y) {
-            return board.getChecker(x, y);
+        Checker getChecker(int x, int y) {
+            return relative.getChecker(x, y);
         }
 
-        public boolean existsChecker(int x, int y) {
-            return board.existsChecker(x, y);
+        boolean existsChecker(int x, int y) {
+            return relative.existsChecker(x, y);
         }
 
-        public boolean existsOppositeChecker(int x, int y, Checker checker) {
-            return board.existsOppositeChecker(x, y, checker);
+        boolean existsOppositeChecker(int x, int y, Checker checker) {
+            return relative.existsOppositeChecker(x, y, checker);
         }
 
         public void printCells() {
-            board.printCells();
+            relative.printCells();
         }
 
     }

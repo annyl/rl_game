@@ -11,16 +11,15 @@ public class Config {
 
     public Config() { }
 
-
-    public Config(Difficulty difficulty) {
+    public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
-    public Config(Difficulty difficulty, boolean twoUserPlayers) {
-        this(difficulty);
-        if (twoUserPlayers)
-            this.vsAI = false;
+
+    public void setVsAI(boolean vsAI) {
+        this.vsAI = vsAI;
     }
 
+    public boolean isVsAI() {return vsAI;}
 
     public Difficulty getDifficulty() {return difficulty;}
 }

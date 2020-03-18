@@ -7,14 +7,11 @@ public class Checker {
     }
 
     public final Type type;
-    public int id;
     private boolean isQueen;
-    private static int COUNTER = 1;
     private Cell cell;
 
     public Checker(Type type, Cell cell) {
         this.type = type;
-        id = COUNTER++;
         this.cell = cell;
     }
 

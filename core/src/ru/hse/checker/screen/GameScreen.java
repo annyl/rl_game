@@ -4,22 +4,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 
-import ru.hse.checker.Game;
 import ru.hse.checker.actor.BoardStage;
 import ru.hse.checker.controller.io.GuiIO;
 import ru.hse.checker.model.Config;
 import ru.hse.checker.model.GameModel;
 
-public class GameScreen implements Screen  {
+public class GameScreen implements Screen {
 
     private BoardStage boardStage;
-    private Game game;
     private GameModel gameModel;
     private GuiIO io;
 
-    public GameScreen(Game game) {
-        this.game = game;
-        gameModel = new GameModel(new Config());
+    public GameScreen(Config config) {
+        gameModel = new GameModel(config);
         io = new GuiIO(gameModel);
         boardStage = new BoardStage(io);
         Gdx.input.setInputProcessor(boardStage);
@@ -27,12 +24,11 @@ public class GameScreen implements Screen  {
 
     @Override
     public void show() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                gameModel.startGame(io, boardStage);
-            }
-        }).start();
+        startGame();
+    }
+
+    public void startGame() {
+        new Thread(() -> gameModel.startGame(io, boardStage)).start();
     }
 
     @Override

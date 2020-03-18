@@ -14,8 +14,7 @@ public class GuiIO implements IOController, BoardStage.IViewListener {
         this.model = model;
     }
 
-    @Override
-    public Cell selectSrcCell() {
+    private void sleepModel() {
         synchronized (model.getCurrentPlayer()) {
             try {
                 model.getCurrentPlayer().wait();
@@ -23,28 +22,41 @@ public class GuiIO implements IOController, BoardStage.IViewListener {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void wakeupModel() {
+        synchronized (model.getCurrentPlayer()) {
+            model.getCurrentPlayer().notify();
+        }
+    }
+
+    @Override
+    public Cell selectSrcCell() {
+        sleepModel();
         return selected;
     }
 
     @Override
     public Cell selectDstCell(ArrayList<Cell> tos) {
         do {
-            synchronized (model.getCurrentPlayer()) {
-                try {
-                    model.getCurrentPlayer().wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            sleepModel();
         } while(!tos.contains(selected));
         return selected;
     }
 
     @Override
     public void onSelectedCell(int x, int y) {
-        synchronized (model.getCurrentPlayer()) {
-            selected = model.getCurrentPlayer().relativeBoard().getCell(x, y);
-            model.getCurrentPlayer().notify();
-        }
+        selected = model.getBoard().getCell(x, y);
+        wakeupModel();
+    }
+
+    @Override
+    public void beginAnimation() {
+        sleepModel();
+    }
+
+    @Override
+    public void endAnimation() {
+        wakeupModel();
     }
 }

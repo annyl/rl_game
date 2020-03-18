@@ -22,7 +22,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/build/intermediates/javac/debug/classes" />
     <output-test url="file://$MODULE_DIR$/build/intermediates/javac/debugUnitTest/classes" />
     <exclude-output />
@@ -88,6 +88,12 @@
     <orderEntry type="library" name="Gradle: com.badlogicgames.gdx:gdx-box2d:1.9.10@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.badlogicgames.gdx:gdx-freetype:1.9.10@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.badlogicgames.gdx:gdx:1.9.10@jar" level="project" />
+    <orderEntry type="library" name="Gradle: org.pytorch:pytorch_android:1.4.0@aar" level="project" />
+    <orderEntry type="library" name="Gradle: org.pytorch:pytorch_android_fbjni:1.4.0@aar" level="project" />
+    <orderEntry type="library" name="Gradle: org.pytorch:pytorch_android_torchvision:1.4.0@aar" level="project" />
+    <orderEntry type="module" module-name="core" />
+    <orderEntry type="module" module-name="core" />
+    <orderEntry type="module" module-name="core" />
     <orderEntry type="module" module-name="core" />
     <orderEntry type="module" module-name="core" />
     <orderEntry type="module" module-name="core" />

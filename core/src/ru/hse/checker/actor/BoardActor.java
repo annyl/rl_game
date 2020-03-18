@@ -1,14 +1,14 @@
 package ru.hse.checker.actor;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
 import ru.hse.checker.model.Board;
+import ru.hse.checker.model.Constants;
 
 public class BoardActor extends Actor {
 
-    private static int WIDTH = Gdx.graphics.getWidth();
-    private static int HEIGHT = Gdx.graphics.getHeight();
+    private static int WIDTH = (int) Constants.GAME_WIDTH;
+    private static int HEIGHT = (int) Constants.GAME_HEIGHT;
 
     private static int CELL_LEN = HEIGHT / Board.ROW; //HEIGHT < WIDTH -> HEIGHT
     private static int PADDING_H = (HEIGHT - Board.ROW*CELL_LEN)/2;

@@ -1,0 +1,68 @@
+sprites2.png
+size: 839, 586
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+background
+  rotate: false
+  xy: 2, 107
+  size: 736, 477
+  orig: 736, 477
+  offset: 0, 0
+  index: -1
+black
+  rotate: false
+  xy: 2, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+black_cell
+  rotate: false
+  xy: 107, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+black_queen
+  rotate: false
+  xy: 212, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+cell_hit
+  rotate: false
+  xy: 317, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+cell_move
+  rotate: false
+  xy: 422, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+white
+  rotate: false
+  xy: 527, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+white_cell
+  rotate: false
+  xy: 632, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+white_queen
+  rotate: false
+  xy: 737, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
