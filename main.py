@@ -80,7 +80,6 @@ if __name__ == '__main__':
                 moves = torch.tensor(moves)
                 turn_score, new_turn_score = (get_score(new_board, player) - get_score(board, player) for player in
                                               [turn, new_turn])
-                print(f'{turn} score = {turn_score}')
                 reward = turn_score - new_turn_score
             score[turn] += reward
             board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
