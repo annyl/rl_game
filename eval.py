@@ -2,6 +2,7 @@ import torch
 from agent import Agent
 from tqdm import tqdm
 from checkers import Checkers
+from utils import action_is_legal
 
 
 def get_score(board: dict, turn: str):
@@ -32,7 +33,9 @@ def eval(agent:Agent, env: Checkers, color:str, n_games=100):
         encoded_turn = torch.tensor([1.]) if turn == 'black' else torch.tensor([0.])
         observation = torch.cat([board_tensor, encoded_turn])
         while not winner:
-            action = brain.choose_action(observation, moves)
+            action = brain.choose_action(observation)
+            while not action_is_legal(action, moves):
+                action = brain.choose_action(observation)
             new_board, new_turn, _, moves, winner = env.move(*action.tolist())
             moves = torch.tensor(moves)
             board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()

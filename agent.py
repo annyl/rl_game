@@ -56,21 +56,15 @@ class Agent:
         self.new_state_memory[index] = new_state
         self.mem_cntr += 1
 
-    def choose_action(self, observation: torch.Tensor, legal_actions: torch.Tensor):
-        if legal_actions.nelement() == 0:
-            return 0
+    def choose_action(self, observation: torch.Tensor):
         rand = np.random.random()
         if rand < self.epsilon:
-            return legal_actions[np.random.randint(len(legal_actions))]
+            return self.action_space[np.random.randint(len(self.action_space))]
         actions = self.net.forward(observation)
-        legal_actions_idx = torch.cat(
-            [((self.action_space[:,0] == legal_action[0]) &
-              (self.action_space[:,1] == legal_action[1])).nonzero()
-                             for legal_action in legal_actions])
-        action = torch.argmax(actions[legal_actions_idx]).item()
-        return self.action_space[legal_actions_idx[action]][0]
+        action = torch.argmax(actions).item()
+        return self.action_space[action]
 
-    def learn(self):
+    def learn(self, decay:bool = True):
         if self.mem_cntr > self.batch_size:
             self.net.optimizer.zero_grad()
         max_mem = min(self.mem_cntr, self.mem_size)
@@ -88,7 +82,8 @@ class Agent:
         batch_index = np.arange(self.batch_size, dtype=np.int32)
         q_target[batch_index, action_indices] = reward_batch + \
             self.gamma * torch.max(q_next, dim=1)[0]*terminal_batch
-        self.epsilon = max(self.epsilon * self.eps_dec, self.eps_min)
+        if decay:
+            self.epsilon = max(self.epsilon * self.eps_dec, self.eps_min)
         loss = self.net.loss(q_target, q).to(self.net.device)
         loss.backward()
         self.net.optimizer.step()

@@ -1,6 +1,6 @@
 from checkers import Checkers
 from agent import Agent, MobileAgent
-import numpy as np
+from utils import action_is_legal
 import torch
 from argparse import ArgumentParser
 import os
@@ -71,23 +71,25 @@ if __name__ == '__main__':
         encoded_turn = torch.tensor([1.]) if turn == 'black' else torch.tensor([0.])
         observation = torch.cat([board_tensor, encoded_turn])
         while not winner:
-            action = brain.choose_action(observation, moves)
-            new_board, new_turn, _, moves, winner = env.move(*action.tolist())
-            moves=torch.tensor(moves)
-            turn_score = get_score(new_board, turn) - get_score(board, turn)
-            # print(f'{turn} score = {turn_score}')
-            new_turn_score = get_score(
-                new_board, new_turn) - get_score(board, new_turn)
-            board, turn, _ = env.save_state()
-            reward = turn_score - new_turn_score
+            action = brain.choose_action(observation)
+            if not action_is_legal(action, moves):
+                reward = -1000000
+                new_turn = turn
+            else:
+                new_board, new_turn, _, moves, winner = env.move(*action.tolist())
+                moves = torch.tensor(moves)
+                turn_score, new_turn_score = (get_score(new_board, player) - get_score(board, player) for player in
+                                              [turn, new_turn])
+                print(f'{turn} score = {turn_score}')
+                reward = turn_score - new_turn_score
             score[turn] += reward
             board_tensor = torch.from_numpy(env.flat_board()).view(-1).float()
             encoded_turn = torch.tensor([1. if turn == 'black' else 0.])
             new_observation = torch.cat([board_tensor, encoded_turn])
-            brain.store_transition(observation, action,
-                                   reward, new_observation, bool(winner))
-            brain.learn()
+            brain.store_transition(observation, action, reward, new_observation, bool(winner))
+            brain.learn((observation != new_observation).any().item())
             observation = new_observation
+            turn = new_turn
             brain = players[turn]
 
         if i % args.save_every == 0:
