@@ -6,11 +6,16 @@ import torch.nn.functional as F
 
 
 class DeepQNetwork(nn.Module):
-    def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions):
+    def __init__(self, lr, input_dims, fc_dims, n_actions):
         super(DeepQNetwork, self).__init__()
-        self.fc1 = nn.Linear(*input_dims, fc1_dims)
-        self.fc2 = nn.Linear(fc1_dims, fc2_dims)
-        self.fc3 = nn.Linear(fc2_dims, n_actions)
+        self.fc1 = nn.Linear(*input_dims, fc_dims)
+        self.fc2 = nn.Linear(fc_dims, fc_dims)
+        self.fc3 = nn.Linear(fc_dims, fc_dims)
+        self.fc4 = nn.Linear(fc_dims, fc_dims)
+        self.fc5 = nn.Linear(fc_dims, fc_dims)
+        self.fc6 = nn.Linear(fc_dims, fc_dims)
+        self.fc7 = nn.Linear(fc_dims, fc_dims)
+        self.fc8 = nn.Linear(fc_dims, n_actions)
         self.optimizer = optim.Adam(self.parameters(), lr=lr)
         self.loss = nn.MSELoss()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -20,7 +25,12 @@ class DeepQNetwork(nn.Module):
         state = observation.to(self.device)
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        actions = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = F.relu(self.fc5(x))
+        x = F.relu(self.fc6(x))
+        x = F.relu(self.fc7(x))
+        actions = self.fc8(x)
         return actions
 
 
@@ -33,7 +43,7 @@ class Agent:
         self.batch_size = batch_size
         self.gamma = gamma
         self.action_space = action_space
-        self.net = DeepQNetwork(lr, input_dims, 256, 256, self.n_actions)
+        self.net = DeepQNetwork(lr, input_dims, 1024, self.n_actions)
         self.mem_size = max_mem_size
         self.mem_cntr = 0
         self.state_memory = torch.zeros(max_mem_size, *input_dims)
