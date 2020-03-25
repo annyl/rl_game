@@ -43,7 +43,7 @@ class Agent:
         self.batch_size = batch_size
         self.gamma = gamma
         self.action_space = action_space
-        self.net = DeepQNetwork(lr, input_dims, 1024, self.n_actions)
+        self.net = DeepQNetwork(lr, input_dims, 256, self.n_actions)
         self.mem_size = max_mem_size
         self.mem_cntr = 0
         self.state_memory = torch.zeros(max_mem_size, *input_dims)
@@ -102,7 +102,7 @@ class MobileAgent(nn.Module):
     def __init__(self, agent:Agent):
         super(MobileAgent, self).__init__()
         self.action_space = agent.action_space
-        self.net = torch.jit.trace(agent.net, torch.rand(65))
+        self.net = torch.jit.trace(agent.net.cpu(), torch.rand(65))
 
     @torch.jit.export
     def choose_action(self, observation, legal_actions):
