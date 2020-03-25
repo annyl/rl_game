@@ -102,9 +102,7 @@ class MobileAgent(nn.Module):
     def __init__(self, agent:Agent):
         super(MobileAgent, self).__init__()
         self.action_space = agent.action_space
-        net_cpu = agent.net.cpu()
-        sample_cpu = torch.rand(65).cpu()
-        self.net = torch.jit.trace(net_cpu, sample_cpu)
+        self.net = torch.jit.trace(agent.net, torch.rand(65))
 
     @torch.jit.export
     def choose_action(self, observation, legal_actions):

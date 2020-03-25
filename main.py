@@ -91,10 +91,10 @@ if __name__ == '__main__':
             turn = new_turn
             brain = players[turn]
 
-        if i % args.save_every == 0:
+        if (i + 1) % args.save_every == 0:
             for key, agent in players.items():
                 agent.net.eval()
-                m_agent = MobileAgent(agent)
+                m_agent = MobileAgent(agent).cpu()
                 path = os.path.join(args.checkpoints_dir, f'{key}[{i + 1}].pt')
                 torch.jit.script(m_agent).save(path)
                 agent.net.train()
