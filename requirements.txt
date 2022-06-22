@@ -6,7 +6,7 @@ git+https://github.com/falcondai/gym-checkers.git
 
 # agent.py: 1
 # main.py: 3
-numpy == 1.18.1
+numpy == 1.22.0
 
 # agent.py: 2,3,4,5
 # main.py: 4
