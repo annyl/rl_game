@@ -10,4 +10,4 @@ numpy == 1.18.1
 
 # agent.py: 2,3,4,5
 # main.py: 4
-torch == 1.4.0
+torch == 2.2.0
